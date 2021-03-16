@@ -17,10 +17,16 @@ describe('hydreigon', () => {
   });
 
   it('general', () => {
-    const item1 = { no: 1, name: 'Poly', speed: 120, power: 60 };
-    const item2 = { no: 2, name: 'Roy', speed: 80, power: 80 };
-    const item3 = { no: 3, name: 'Amber', speed: 80, power: 60 };
-    const item4 = { no: 4, name: 'Helly', speed: 100, power: 60 };
+    const item1 = { no: 1, name: 'Poly', speed: 120, power: 60, nickname: 'P' };
+    const item2 = { no: 2, name: 'Roy', speed: 80, power: 80, nickname: 'R' };
+    const item3 = { no: 3, name: 'Amber', speed: 80, power: 60, nickname: 'A' };
+    const item4 = {
+      no: 4,
+      name: 'Helly',
+      speed: 100,
+      power: 60,
+      nickname: 'H',
+    };
 
     const indexer = new Hydreigon('no', 'name', 'speed', 'power');
     expect(() => indexer.search('name', 'Poly')).not.toThrow();
