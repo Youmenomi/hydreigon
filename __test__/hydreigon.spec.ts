@@ -27,8 +27,9 @@ describe('hydreigon', () => {
       power: 60,
       nickname: 'H',
     };
-
-    const indexer = new Hydreigon('no', 'name', 'speed', 'power');
+    const indexer = new Hydreigon('no', 'name', 'speed', 'power').knock<
+      typeof item1
+    >();
     expect(() => indexer.search('name', 'Poly')).not.toThrow();
 
     indexer.add(item1, item2, item3, item4);

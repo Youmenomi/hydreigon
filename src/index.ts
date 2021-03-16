@@ -2,7 +2,10 @@ import autoBind from 'auto-bind';
 import { IndexType, report } from './helper';
 
 const pkgName = 'hydreigon';
-export class Hydreigon<IItem = any, IProp extends keyof IItem = keyof IItem> {
+export class Hydreigon<
+  IItem extends { [key in IProp]: any } = any,
+  IProp extends IndexType = IndexType
+> {
   protected _compareFn?: (a: IItem, b: IItem) => number;
   protected _tied = new Set<Set<IItem> | (IItem | undefined)[]>();
   protected _props: IProp[];
@@ -17,6 +20,10 @@ export class Hydreigon<IItem = any, IProp extends keyof IItem = keyof IItem> {
 
   get itemsSize() {
     return this._items.size;
+  }
+
+  knock<IItem extends { [key in IProp]?: any } = any>() {
+    return (this as any) as Hydreigon<IItem, IProp>;
   }
 
   constructor(...props: IProp[]) {
