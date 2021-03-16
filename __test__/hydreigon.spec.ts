@@ -23,6 +23,8 @@ describe('hydreigon', () => {
     const item4 = { no: 4, name: 'Helly', speed: 100, power: 60 };
 
     const indexer = new Hydreigon('no', 'name', 'speed', 'power');
+    expect(() => indexer.search('name', 'Poly')).not.toThrow();
+
     indexer.add(item1, item2, item3, item4);
 
     indexer.add(item1);
@@ -83,6 +85,8 @@ describe('hydreigon', () => {
     expect(warn).toBeCalledWith('[Hydreigon] The removed item does not exist.');
     expect(warn).toBeCalledTimes(1);
     process.env = env;
+
+    expect(() => indexer.search('name', 'Poly')).not.toThrow();
 
     indexer.dispose();
   });

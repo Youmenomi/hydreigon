@@ -1,6 +1,7 @@
 import autoBind from 'auto-bind';
 import { report } from './helper';
 
+const pkgName = 'hydreigon';
 export class Hydreigon<IItem = any> {
   protected _compareFn?: (a: IItem, b: IItem) => number;
   protected _tied = new Set<Set<IItem> | (IItem | undefined)[]>();
@@ -20,6 +21,9 @@ export class Hydreigon<IItem = any> {
 
   constructor(...props: (keyof IItem)[]) {
     this._props = props;
+    props.forEach((prop) => {
+      this._propMap.set(prop, new Map());
+    });
     autoBind(this);
   }
 
@@ -45,13 +49,9 @@ export class Hydreigon<IItem = any> {
 
     this._props.forEach((prop) => {
       const value = item[prop];
-      let valueMap = this._propMap.get(prop);
-      if (!valueMap) {
-        valueMap = new Map();
-        this._propMap.set(prop, valueMap);
-        valueMap.set(value, new Set([item]));
-        return;
-      }
+      const valueMap = this._propMap.get(prop);
+      /* istanbul ignore next */
+      if (!valueMap) throw report(pkgName);
       let items = valueMap.get(value);
       if (!items) {
         items = new Set([item]);
@@ -85,10 +85,10 @@ export class Hydreigon<IItem = any> {
       const value = item[prop];
       const valueMap = this._propMap.get(prop);
       /* istanbul ignore next */
-      if (!valueMap) throw report('hydreigon');
+      if (!valueMap) throw report(pkgName);
       const items = valueMap.get(value);
       /* istanbul ignore next */
-      if (!items) throw report('hydreigon');
+      if (!items) throw report(pkgName);
       items.delete(item);
       if (items.size === 0) valueMap.delete(value);
     });
