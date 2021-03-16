@@ -1,16 +1,16 @@
 import autoBind from 'auto-bind';
-import { report } from './helper';
+import { IndexType, report } from './helper';
 
 const pkgName = 'hydreigon';
-export class Hydreigon<IProps = any> {
-  protected _compareFn?: (a: IProps, b: IProps) => number;
-  protected _tied = new Set<Set<IProps> | (IProps | undefined)[]>();
-  protected _props: (keyof IProps)[];
-  protected _propMap = new Map<keyof IProps, Map<any, Set<IProps>>>();
+export class Hydreigon<IItem = any, IProp extends keyof IItem = keyof IItem> {
+  protected _compareFn?: (a: IItem, b: IItem) => number;
+  protected _tied = new Set<Set<IItem> | (IItem | undefined)[]>();
+  protected _props: IProp[];
+  protected _propMap = new Map<IProp, Map<any, Set<IItem>>>();
 
-  protected _items = new Set<IProps>();
-  items(returnArray: true): IProps[];
-  items(returnArray?: false): Set<IProps>;
+  protected _items = new Set<IItem>();
+  items(returnArray: true): IItem[];
+  items(returnArray?: false): Set<IItem>;
   items(returnArray = false) {
     return returnArray ? [...this._items] : new Set(this._items);
   }
@@ -19,7 +19,7 @@ export class Hydreigon<IProps = any> {
     return this._items.size;
   }
 
-  constructor(...props: (keyof IProps)[]) {
+  constructor(...props: IProp[]) {
     this._props = props;
     props.forEach((prop) => {
       this._propMap.set(prop, new Map());
@@ -27,13 +27,13 @@ export class Hydreigon<IProps = any> {
     autoBind(this);
   }
 
-  add(...items: IProps[]) {
+  add(...items: IItem[]) {
     items.forEach((item) => {
       this.internalAdd(item);
     });
   }
 
-  protected internalAdd(item: IProps) {
+  protected internalAdd(item: IItem) {
     if (this._items.has(item)) {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[Hydreigon] The added item already exists.');
@@ -66,13 +66,13 @@ export class Hydreigon<IProps = any> {
     });
   }
 
-  remove(...items: IProps[]) {
+  remove(...items: IItem[]) {
     items.forEach((item) => {
       this.internalRemove(item);
     });
   }
 
-  protected internalRemove(item: IProps) {
+  protected internalRemove(item: IItem) {
     if (!this._items.has(item)) {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[Hydreigon] The removed item does not exist.');
@@ -102,7 +102,7 @@ export class Hydreigon<IProps = any> {
     });
   }
 
-  protected internalSearch(prop: keyof IProps, value: any) {
+  protected internalSearch(prop: IProp, value: any) {
     const valueMap = this._propMap.get(prop);
     if (!valueMap) {
       throw new Error(
@@ -112,9 +112,9 @@ export class Hydreigon<IProps = any> {
     return valueMap.get(value);
   }
 
-  search(prop: keyof IProps, value: any, returnArray: true): IProps[];
-  search(prop: keyof IProps, value: any, returnArray?: false): Set<IProps>;
-  search(prop: keyof IProps, value: any, returnArray = false) {
+  search(prop: IProp, value: any, returnArray: true): IItem[];
+  search(prop: IProp, value: any, returnArray?: false): Set<IItem>;
+  search(prop: IProp, value: any, returnArray = false) {
     const items = this.internalSearch(prop, value);
     if (returnArray) {
       return items ? [...items] : [];
@@ -123,7 +123,7 @@ export class Hydreigon<IProps = any> {
     }
   }
 
-  searchSize(prop: keyof IProps, value: any) {
+  searchSize(prop: IProp, value: any) {
     const valueMap = this._propMap.get(prop);
     if (!valueMap) {
       throw new Error(
@@ -134,7 +134,7 @@ export class Hydreigon<IProps = any> {
     return items ? items.size : 0;
   }
 
-  sort(compareFn: (a: IProps, b: IProps) => number) {
+  sort(compareFn: (a: IItem, b: IItem) => number) {
     this._compareFn = compareFn;
 
     if (this._items.size > 1) {
@@ -144,11 +144,11 @@ export class Hydreigon<IProps = any> {
     }
   }
 
-  tie(items: Set<IProps> | IProps[]) {
+  tie(items: Set<IItem> | IItem[]) {
     this._tied.add(items);
   }
 
-  untie(items: Set<IProps> | IProps[]) {
+  untie(items: Set<IItem> | IItem[]) {
     this._tied.delete(items);
   }
 
