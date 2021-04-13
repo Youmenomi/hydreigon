@@ -12,7 +12,10 @@ export type Branch<IItem extends { [key in IndexType]: any } = any> = Map<
   Map<IndexType, Set<IItem> | Hydreigon<IItem>>
 >;
 
-export class Hydreigon<IItem extends { [key in IndexType]: any } = any> {
+export class Hydreigon<
+  IItem extends { [key in IndexType]: any } = any,
+  TCondition extends [IndexType, any] = any
+> {
   protected _items = new Set<IItem>();
   protected _branch: Branch<IItem> = new Map();
   protected _branchMap?: Map<IndexType, (IndexType | Node)[]>;
@@ -122,9 +125,9 @@ export class Hydreigon<IItem extends { [key in IndexType]: any } = any> {
     });
   }
 
-  search(returnArray: true, ...conditions: [IndexType, any][]): IItem[];
-  search(returnArray: false, ...conditions: [IndexType, any][]): Set<IItem>;
-  search(returnArray: boolean, ...conditions: [IndexType, any][]) {
+  search(returnArray: true, ...conditions: TCondition[]): IItem[];
+  search(returnArray: false, ...conditions: TCondition[]): Set<IItem>;
+  search(returnArray: boolean, ...conditions: TCondition[]) {
     const items = this.internalSearch(conditions.concat(), false);
     if (returnArray) {
       return items ? [...items] : [];
@@ -133,13 +136,13 @@ export class Hydreigon<IItem extends { [key in IndexType]: any } = any> {
     }
   }
 
-  protected internalSearch(conditions: [IndexType, any][], size: true): number;
+  protected internalSearch(conditions: TCondition[], size: true): number;
   protected internalSearch(
-    conditions: [IndexType, any][],
+    conditions: TCondition[],
     size: boolean
   ): Set<IItem> | undefined;
   protected internalSearch(
-    conditions: [IndexType, any][],
+    conditions: TCondition[],
     size: boolean
   ): number | Set<IItem> | undefined {
     const condition = conditions.shift();
@@ -188,7 +191,7 @@ export class Hydreigon<IItem extends { [key in IndexType]: any } = any> {
     }
   }
 
-  searchSize(...conditions: [IndexType, any][]): number {
+  searchSize(...conditions: TCondition[]): number {
     return this.internalSearch(conditions, true);
   }
 

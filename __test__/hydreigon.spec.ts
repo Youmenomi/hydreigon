@@ -42,16 +42,30 @@ describe('hydreigon', () => {
       group: 'G3',
     };
 
-    const indexer = new Hydreigon<{
-      event: string;
-      listener: string;
-      group: string;
-    }>('event', 'listener', {
+    const indexer = new Hydreigon<
+      {
+        event: string;
+        listener: string;
+        group: string;
+      },
+      ['event', string] | ['listener', (e: string) => void] | ['group', any]
+    >('event', 'listener', {
       index: 'group',
       branch: ['event'],
     });
 
     indexer.add(item1, item2, item3, item4 as any);
+
+    indexer.search(true, ['event', 'string']);
+    indexer.search(true, ['event', 123 as any]);
+    indexer.search(true, [
+      'listener',
+      (e) => {
+        e;
+      },
+    ]);
+    indexer.search(true, ['listener', '123' as any]);
+    indexer.search(true, ['group', {}]);
   });
 
   it('sort & readd & refresh', () => {
