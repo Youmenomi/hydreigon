@@ -24,13 +24,26 @@ export class Hydreigon<
   constructor(...heads: (IndexType | Node)[]) {
     heads.forEach((head) => {
       if (typeof head === 'object') {
+        if (
+          process.env.NODE_ENV === 'development' &&
+          this._branch.has(head.index)
+        ) {
+          console.warn(
+            '[Hydreigon] Duplicate index of head. The previous one will be overwritten.'
+          );
+        }
         const { branch } = head;
         if (branch) {
-          this._branchMap = new Map();
+          if (!this._branchMap) this._branchMap = new Map();
           this._branchMap.set(head.index, branch);
         }
         this._branch.set(head.index, new Map());
       } else {
+        if (process.env.NODE_ENV === 'development' && this._branch.has(head)) {
+          console.warn(
+            '[Hydreigon] Duplicate index of head. The previous one will be overwritten.'
+          );
+        }
         this._branch.set(head, new Map());
       }
     });
@@ -160,34 +173,40 @@ export class Hydreigon<
     }
 
     const indexerOrSet = map.get(value);
-    if (!indexerOrSet) return size ? 0 : undefined;
-
-    if (indexerOrSet instanceof Hydreigon) {
-      if (conditions.length === 0)
+    if (conditions.length === 0) {
+      if (!indexerOrSet) {
+        return size ? 0 : undefined;
+      } else if (indexerOrSet instanceof Hydreigon) {
         return size ? indexerOrSet._items.size : indexerOrSet._items;
-      else {
-        const [nextIndex] = conditions[0];
-        const branch = this._branchMap && this._branchMap.get(index);
-        if (branch && branch.includes(nextIndex)) {
-          return indexerOrSet.internalSearch(conditions, size);
-        } else {
-          throw new Error(
-            `[Hydreigon] The searched branch "${String(
-              nextIndex
-            )}" does not exist in the branch "${String(index)}".`
-          );
-        }
+      } else {
+        return size ? indexerOrSet.size : indexerOrSet;
       }
     } else {
-      if (conditions.length > 0) {
-        const [nextIndex] = conditions[0];
+      const [nextIndex] = conditions[0];
+      const branch = this._branchMap && this._branchMap.get(index);
+      if (
+        branch &&
+        !(indexerOrSet instanceof Set) &&
+        branch.some((indexOrNode) => {
+          if (typeof indexOrNode === 'object') {
+            return indexOrNode.index === nextIndex;
+          } else {
+            return indexOrNode === nextIndex;
+          }
+        })
+      ) {
+        if (!indexerOrSet) {
+          return size ? 0 : undefined;
+        } else {
+          return indexerOrSet.internalSearch(conditions, size);
+        }
+      } else {
         throw new Error(
           `[Hydreigon] The searched branch "${String(
             nextIndex
           )}" does not exist in the branch "${String(index)}".`
         );
       }
-      return size ? indexerOrSet.size : indexerOrSet;
     }
   }
 

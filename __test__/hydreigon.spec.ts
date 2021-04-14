@@ -178,6 +178,45 @@ describe('hydreigon', () => {
       expectedItems(indexer, []);
       expect(unprotect(indexer)._items).toEqual(new Set());
     }
+    {
+      warn.mockClear();
+      new Hydreigon(
+        'event',
+        'listener',
+        {
+          index: 'group',
+        },
+        'group',
+        {
+          index: 'event',
+        }
+      );
+      expect(warn).not.toBeCalled();
+
+      warn.mockClear();
+      process.env.NODE_ENV = 'development';
+      new Hydreigon(
+        'event',
+        'listener',
+        {
+          index: 'group',
+        },
+        'group',
+        {
+          index: 'event',
+        }
+      );
+      expect(warn).nthCalledWith(
+        1,
+        '[Hydreigon] Duplicate index of head. The previous one will be overwritten.'
+      );
+      expect(warn).nthCalledWith(
+        2,
+        '[Hydreigon] Duplicate index of head. The previous one will be overwritten.'
+      );
+      expect(warn).toBeCalledTimes(2);
+      process.env = env;
+    }
   });
 
   it('search & searchSize & searchHas', () => {
@@ -206,18 +245,38 @@ describe('hydreigon', () => {
       group: 'G3',
     };
 
-    const indexer = new Hydreigon('event', 'listener', {
-      index: 'group',
-      branch: ['event'],
-    });
+    const indexer = new Hydreigon(
+      {
+        index: 'event',
+        branch: [{ index: 'listener' }],
+      },
+      'listener',
+      {
+        index: 'group',
+        branch: ['event'],
+      }
+    );
 
+    expect(() =>
+      indexer.searchSize(['listener', 'L1'], ['event', 'E1'])
+    ).toThrowError(
+      '[Hydreigon] The searched branch "event" does not exist in the branch "listener".'
+    );
     expect(() => indexer.search(false)).toThrowError(
       '[Hydreigon] No search conditions are provided.'
     );
     expect(() => indexer.search(false, ['no', '1'])).toThrowError(
       '[Hydreigon] The searched property "no" does not exist in the constructor heads parameter.'
     );
-    expect(indexer.search(false, ['event', 'E1'])).toEqual(new Set());
+    expectedSearch(indexer, [['event', 'E1']], []);
+    expectedSearch(
+      indexer,
+      [
+        ['event', 'E1'],
+        ['listener', 'L1'],
+      ],
+      []
+    );
 
     expect(() => indexer.searchSize()).toThrowError(
       '[Hydreigon] No search conditions are provided.'
@@ -226,6 +285,7 @@ describe('hydreigon', () => {
       '[Hydreigon] The searched property "no" does not exist in the constructor heads parameter.'
     );
     expect(indexer.searchSize(['event', 'E1'])).toBe(0);
+    expect(indexer.searchSize(['event', 'E1'], ['listener', 'L1'])).toBe(0);
 
     indexer.add(item1, item2, item3, item4);
     expectedSearch(indexer, [['event', 'E1']], [item1, item2]);
@@ -277,15 +337,18 @@ describe('hydreigon', () => {
       ],
       [item4]
     );
+    expectedSearch(
+      indexer,
+      [
+        ['event', 'E1'],
+        ['listener', 'L1'],
+      ],
+      [item1]
+    );
     expect(() =>
       indexer.search(false, ['group', 'G1'], ['listener', 'L1'])
     ).toThrowError(
       '[Hydreigon] The searched branch "listener" does not exist in the branch "group".'
-    );
-    expect(() =>
-      indexer.search(false, ['event', 'E1'], ['listener', 'L1'])
-    ).toThrowError(
-      '[Hydreigon] The searched branch "listener" does not exist in the branch "event".'
     );
 
     expect(indexer.searchSize(['group', 'G1'], ['event', 'E1'])).toBe(1);
