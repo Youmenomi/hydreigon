@@ -180,7 +180,7 @@ describe('hydreigon', () => {
     }
   });
 
-  it('search & searchSize', () => {
+  it('search & searchSize & searchHas', () => {
     const item1 = {
       no: 1,
       event: 'E1',
@@ -291,6 +291,19 @@ describe('hydreigon', () => {
     expect(indexer.searchSize(['group', 'G1'], ['event', 'E1'])).toBe(1);
     expect(indexer.searchSize(['group', 'G2'], ['event', 'E2'])).toBe(0);
     expect(indexer.searchSize(['group', 'G3'], ['event', 'E3'])).toBe(1);
+
+    expect(indexer.searchHas(item2, ['event', 'E1'])).toBe(true);
+    expect(indexer.searchHas(item1, ['group', 'G3'])).toBe(false);
+    expect(indexer.searchHas(item4, ['listener', 'L4'])).toBe(false);
+    expect(indexer.searchHas(item3, ['group', 'G3'], ['event', 'E3'])).toBe(
+      true
+    );
+    expect(indexer.searchHas(item1, ['group', 'G3'], ['event', 'E3'])).toBe(
+      false
+    );
+    expect(() => indexer.searchHas(item1)).toThrowError(
+      '[Hydreigon] No search conditions are provided.'
+    );
   });
 
   it('add & delete & clear & size & dispose', () => {

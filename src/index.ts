@@ -7,19 +7,19 @@ export type Node = {
   branch?: (IndexType | Node)[];
 };
 
-export type Branch<IItem extends { [key in IndexType]: any } = any> = Map<
+export type Branch<TItem extends { [key in IndexType]: any } = any> = Map<
   IndexType,
-  Map<IndexType, Set<IItem> | Hydreigon<IItem>>
+  Map<IndexType, Set<TItem> | Hydreigon<TItem>>
 >;
 
 export class Hydreigon<
-  IItem extends { [key in IndexType]: any } = any,
+  TItem extends { [key in IndexType]: any } = any,
   TCondition extends [IndexType, any] = any
 > {
-  protected _items = new Set<IItem>();
-  protected _branch: Branch<IItem> = new Map();
+  protected _items = new Set<TItem>();
+  protected _branch: Branch<TItem> = new Map();
   protected _branchMap?: Map<IndexType, (IndexType | Node)[]>;
-  protected _compareFn?: (a: IItem, b: IItem) => number;
+  protected _compareFn?: (a: TItem, b: TItem) => number;
 
   constructor(...heads: (IndexType | Node)[]) {
     heads.forEach((head) => {
@@ -36,8 +36,8 @@ export class Hydreigon<
     });
   }
 
-  items(returnArray: true): IItem[];
-  items(returnArray?: false): Set<IItem>;
+  items(returnArray: true): TItem[];
+  items(returnArray?: false): Set<TItem>;
   items(returnArray = false) {
     return returnArray ? [...this._items] : new Set(this._items);
   }
@@ -46,13 +46,13 @@ export class Hydreigon<
     return this._items.size;
   }
 
-  add(...items: IItem[]) {
+  add(...items: TItem[]) {
     items.forEach((item) => {
       this.internalAdd(item);
     });
   }
 
-  protected internalAdd(item: IItem, sort = true) {
+  protected internalAdd(item: TItem, sort = true) {
     if (this._items.has(item)) {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[Hydreigon] The added item already exists.');
@@ -96,13 +96,13 @@ export class Hydreigon<
     });
   }
 
-  delete(...items: IItem[]) {
+  delete(...items: TItem[]) {
     items.forEach((item) => {
       this.internalDelete(item);
     });
   }
 
-  protected internalDelete(item: IItem) {
+  protected internalDelete(item: TItem) {
     if (!this._items.has(item)) {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[Hydreigon] The removed item does not exist.');
@@ -125,8 +125,8 @@ export class Hydreigon<
     });
   }
 
-  search(returnArray: true, ...conditions: TCondition[]): IItem[];
-  search(returnArray: false, ...conditions: TCondition[]): Set<IItem>;
+  search(returnArray: true, ...conditions: TCondition[]): TItem[];
+  search(returnArray: false, ...conditions: TCondition[]): Set<TItem>;
   search(returnArray: boolean, ...conditions: TCondition[]) {
     const items = this.internalSearch(conditions.concat(), false);
     if (returnArray) {
@@ -140,11 +140,11 @@ export class Hydreigon<
   protected internalSearch(
     conditions: TCondition[],
     size: boolean
-  ): Set<IItem> | undefined;
+  ): Set<TItem> | undefined;
   protected internalSearch(
     conditions: TCondition[],
     size: boolean
-  ): number | Set<IItem> | undefined {
+  ): number | Set<TItem> | undefined {
     const condition = conditions.shift();
     if (!condition)
       throw new Error('[Hydreigon] No search conditions are provided.');
@@ -195,17 +195,22 @@ export class Hydreigon<
     return this.internalSearch(conditions, true);
   }
 
+  searchHas(item: TItem, ...conditions: TCondition[]) {
+    const items = this.internalSearch(conditions, false);
+    return items ? items.has(item) : false;
+  }
+
   get sort() {
     return this._compareFn;
   }
-  set sort(compareFn: ((a: IItem, b: IItem) => number) | undefined) {
+  set sort(compareFn: ((a: TItem, b: TItem) => number) | undefined) {
     if (this._compareFn === compareFn) return;
     this._compareFn = compareFn;
 
     this.refresh();
   }
 
-  readd(...items: IItem[]) {
+  readd(...items: TItem[]) {
     items.forEach((item) => {
       this.internalDelete(item);
       this.internalAdd(item);
