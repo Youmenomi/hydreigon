@@ -14,7 +14,7 @@ export type Branch<TItem extends { [key in IndexType]: any } = any> = Map<
 
 export class Hydreigon<
   TItem extends { [key in IndexType]: any } = any,
-  TCondition extends [IndexType, any] = any
+  TCondition extends [IndexType, any] = [IndexType, any]
 > {
   protected _items = new Set<TItem>();
   protected _branch: Branch<TItem> = new Map();
