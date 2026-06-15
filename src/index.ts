@@ -23,29 +23,25 @@ export class Hydreigon<
 
   constructor(...heads: (PropertyKey | Node)[]) {
     heads.forEach((head) => {
-      if (typeof head === 'object') {
-        if (
-          process.env.NODE_ENV === 'development' &&
-          this._branch.has(head.index)
-        ) {
-          console.warn(
-            '[Hydreigon] Duplicate index of head. The previous one will be overwritten.',
-          );
-        }
-        const { branch } = head;
-        if (branch) {
-          if (!this._branchMap) this._branchMap = new Map();
-          this._branchMap.set(head.index, branch);
-        }
-        this._branch.set(head.index, new Map());
-      } else {
-        if (process.env.NODE_ENV === 'development' && this._branch.has(head)) {
-          console.warn(
-            '[Hydreigon] Duplicate index of head. The previous one will be overwritten.',
-          );
-        }
-        this._branch.set(head, new Map());
+      const index = typeof head === 'object' ? head.index : head;
+      const branch = typeof head === 'object' ? head.branch : undefined;
+
+      if (process.env.NODE_ENV === 'development' && this._branch.has(index)) {
+        console.warn(
+          '[Hydreigon] Duplicate index of head. The previous one will be overwritten.',
+        );
       }
+
+      if (branch) {
+        if (!this._branchMap) this._branchMap = new Map();
+        this._branchMap.set(index, branch);
+      } else if (this._branchMap?.delete(index) && this._branchMap.size === 0) {
+        // Overwriting with a branch-less head: drop any stale branch mapping
+        // so _branch and _branchMap stay consistent for this index, and keep
+        // _branchMap undefined when no branch heads remain.
+        this._branchMap = undefined;
+      }
+      this._branch.set(index, new Map());
     });
   }
 
@@ -63,9 +59,11 @@ export class Hydreigon<
     items.forEach((item) => {
       this.internalAdd(item);
     });
+    // Sort once after the whole batch instead of on every insertion.
+    if (this._compareFn) this.refresh();
   }
 
-  protected internalAdd(item: TItem, sort = true) {
+  protected internalAdd(item: TItem) {
     if (this._items.has(item)) {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[Hydreigon] The added item already exists.');
@@ -74,11 +72,6 @@ export class Hydreigon<
     }
 
     this._items.add(item);
-    if (sort && this._compareFn && this._items.size > 1) {
-      const arr = [...this._items].sort(this._compareFn);
-      this._items.clear();
-      this._items = new Set(arr);
-    }
 
     this._branch.forEach((map, index) => {
       const value = item[index];
@@ -88,22 +81,15 @@ export class Hydreigon<
         if (heads) {
           const indexer = new Hydreigon(...heads);
           indexer.sort = this._compareFn;
-          indexer.internalAdd(item, false);
+          indexer.internalAdd(item);
           map.set(value, indexer);
         } else {
           map.set(value, new Set([item]));
         }
+      } else if (items instanceof Set) {
+        items.add(item);
       } else {
-        if (items instanceof Set) {
-          items.add(item);
-          if (sort && this._compareFn && items.size > 1) {
-            const arr = [...items].sort(this._compareFn);
-            items.clear();
-            map.set(value, new Set(arr));
-          }
-        } else {
-          items.internalAdd(item, sort);
-        }
+        items.internalAdd(item);
       }
     });
   }
@@ -232,6 +218,7 @@ export class Hydreigon<
       this.internalDelete(item);
       this.internalAdd(item);
     });
+    if (this._compareFn) this.refresh();
   }
 
   refresh() {
@@ -239,7 +226,7 @@ export class Hydreigon<
       const arr = [...this._items].sort(this._compareFn);
       this.clear();
       arr.forEach((item) => {
-        this.internalAdd(item, false);
+        this.internalAdd(item);
       });
     }
   }
@@ -260,12 +247,7 @@ export class Hydreigon<
 
   dispose() {
     this.clear();
-
     this._branch.clear();
-    //@ts-expect-error
-    this._branch = undefined;
-    //@ts-expect-error
-    this._items = undefined;
     if (this._branchMap) {
       this._branchMap.clear();
       this._branchMap = undefined;
