@@ -18,6 +18,8 @@
   "main": "./dist/hydreigon.cjs",
   "module": "./dist/hydreigon.js",
   "types": "./dist/index.d.ts",
+  "unpkg": "./dist/hydreigon.global.js",
+  "jsdelivr": "./dist/hydreigon.global.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -32,15 +34,14 @@
   "scripts": {
     "dev": "vitest",
     "test": "vitest run --coverage",
-    "ts:check": "tsc --noEmit -p tsconfig.build.json",
+    "ts:check": "tsc --noEmit -p tsconfig.build.json && tsc --noEmit -p tsconfig.json",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "build:types": "tsc --emitDeclarationOnly -p tsconfig.build.json",
-    "build": "pnpm run ts:check && pnpm run lint && vite build",
+    "build": "pnpm run ts:check && pnpm run lint && vite build && vite build --config vite.iife.config.ts",
     "prepare": "lefthook install",
-    "prepublishOnly": "pnpm run build",
-    "release": "np --no-cleanup"
+    "prepublishOnly": "pnpm run build"
   },
   "repository": {
     "type": "git",
@@ -58,7 +59,6 @@
     "@types/node": "^25.9.3",
     "@vitest/coverage-v8": "^4.1.8",
     "lefthook": "^2.1.9",
-    "np": "^11.2.1",
     "typescript": "^6.0.3",
     "vite": "^8.0.16",
     "vite-plugin-dts": "^5.0.2",
