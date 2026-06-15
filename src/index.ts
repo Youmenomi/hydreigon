@@ -1,4 +1,4 @@
-import { IndexType, report } from './helper';
+import { type IndexType, report } from './helper';
 
 const pkgName = 'hydreigon';
 
@@ -14,7 +14,7 @@ export type Branch<TItem extends { [key in IndexType]: any } = any> = Map<
 
 export class Hydreigon<
   TItem extends { [key in IndexType]: any } = any,
-  TCondition extends [IndexType, any] = [IndexType, any]
+  TCondition extends [IndexType, any] = [IndexType, any],
 > {
   protected _items = new Set<TItem>();
   protected _branch: Branch<TItem> = new Map();
@@ -29,7 +29,7 @@ export class Hydreigon<
           this._branch.has(head.index)
         ) {
           console.warn(
-            '[Hydreigon] Duplicate index of head. The previous one will be overwritten.'
+            '[Hydreigon] Duplicate index of head. The previous one will be overwritten.',
           );
         }
         const { branch } = head;
@@ -41,7 +41,7 @@ export class Hydreigon<
       } else {
         if (process.env.NODE_ENV === 'development' && this._branch.has(head)) {
           console.warn(
-            '[Hydreigon] Duplicate index of head. The previous one will be overwritten.'
+            '[Hydreigon] Duplicate index of head. The previous one will be overwritten.',
           );
         }
         this._branch.set(head, new Map());
@@ -81,11 +81,10 @@ export class Hydreigon<
     }
 
     this._branch.forEach((map, index) => {
-      //@ts-expect-error https://github.com/microsoft/TypeScript/issues/1863
       const value = item[index];
       const items = map.get(value);
       if (!items) {
-        const heads = this._branchMap && this._branchMap.get(index);
+        const heads = this._branchMap?.get(index);
         if (heads) {
           const indexer = new Hydreigon(...heads);
           indexer.sort = this._compareFn;
@@ -126,10 +125,9 @@ export class Hydreigon<
     this._items.delete(item);
 
     this._branch.forEach((map, index) => {
-      //@ts-expect-error https://github.com/microsoft/TypeScript/issues/1863
       const value = item[index];
       const items = map.get(value);
-      /* istanbul ignore next */
+      /* v8 ignore next */
       if (!items) throw report(pkgName);
       items.delete(item);
       if (items.size === 0) {
@@ -152,11 +150,11 @@ export class Hydreigon<
   protected internalSearch(conditions: TCondition[], size: true): number;
   protected internalSearch(
     conditions: TCondition[],
-    size: boolean
+    size: boolean,
   ): Set<TItem> | undefined;
   protected internalSearch(
     conditions: TCondition[],
-    size: boolean
+    size: boolean,
   ): number | Set<TItem> | undefined {
     const condition = conditions.shift();
     if (!condition)
@@ -167,8 +165,8 @@ export class Hydreigon<
     if (!map) {
       throw new Error(
         `[Hydreigon] The searched property "${String(
-          index
-        )}" does not exist in the constructor heads parameter.`
+          index,
+        )}" does not exist in the constructor heads parameter.`,
       );
     }
 
@@ -183,7 +181,7 @@ export class Hydreigon<
       }
     } else {
       const [nextIndex] = conditions[0];
-      const branch = this._branchMap && this._branchMap.get(index);
+      const branch = this._branchMap?.get(index);
       if (
         branch &&
         !(indexerOrSet instanceof Set) &&
@@ -203,8 +201,8 @@ export class Hydreigon<
       } else {
         throw new Error(
           `[Hydreigon] The searched branch "${String(
-            nextIndex
-          )}" does not exist in the branch "${String(index)}".`
+            nextIndex,
+          )}" does not exist in the branch "${String(index)}".`,
         );
       }
     }

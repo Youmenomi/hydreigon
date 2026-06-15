@@ -2,12 +2,14 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
-    "lib": ["esnext", "esnext.asynciterable", "dom"],
+    "moduleResolution": "bundler",
+    "lib": ["esnext"],
+    "verbatimModuleSyntax": true,
     "esModuleInterop": true,
     "sourceMap": true,
     "strict": true,
-    "types": ["@types/jest", "@types/node"]
+    "skipLibCheck": true,
+    "types": ["node", "vitest/globals"]
   },
-  "include": ["src", "__test__"]
+  "include": ["src", "__test__", "vite.config.ts"]
 }

@@ -4,9 +4,7 @@ import { expectedItems, expectedSearch, unprotect } from './helper';
 const env = process.env;
 
 describe('hydreigon', () => {
-  const warn = jest
-    .spyOn(global.console, 'warn')
-    .mockImplementation(() => true);
+  const warn = vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
   beforeEach(() => {
     process.env = { ...env };
@@ -126,6 +124,7 @@ describe('hydreigon', () => {
     indexer.refresh();
     expectedItems(indexer, [item4, item2, item1, item3]);
 
+    // biome-ignore lint/correctness/noSelfAssign: intentionally exercises the sort setter's identity-check early-return branch
     indexer.sort = indexer.sort;
   });
 
@@ -137,7 +136,7 @@ describe('hydreigon', () => {
         new Map([
           ['event', new Map()],
           ['listener', new Map()],
-        ])
+        ]),
       );
       expect(unprotect(indexer)._branchMap).toBeUndefined();
       expectedItems(indexer, []);
@@ -154,10 +153,10 @@ describe('hydreigon', () => {
           ['event', new Map()],
           ['listener', new Map()],
           ['group', new Map()],
-        ])
+        ]),
       );
       expect(unprotect(indexer)._branchMap).toEqual(
-        new Map([['group', ['event']]])
+        new Map([['group', ['event']]]),
       );
       expectedItems(indexer, []);
       expect(unprotect(indexer)._items).toEqual(new Set());
@@ -172,51 +171,49 @@ describe('hydreigon', () => {
           ['event', new Map()],
           ['listener', new Map()],
           ['group', new Map()],
-        ])
+        ]),
       );
       expect(unprotect(indexer)._branchMap).toBeUndefined();
       expectedItems(indexer, []);
       expect(unprotect(indexer)._items).toEqual(new Set());
     }
-    {
-      warn.mockClear();
-      new Hydreigon(
-        'event',
-        'listener',
-        {
-          index: 'group',
-        },
-        'group',
-        {
-          index: 'event',
-        }
-      );
-      expect(warn).not.toBeCalled();
+    warn.mockClear();
+    new Hydreigon(
+      'event',
+      'listener',
+      {
+        index: 'group',
+      },
+      'group',
+      {
+        index: 'event',
+      },
+    );
+    expect(warn).not.toBeCalled();
 
-      warn.mockClear();
-      process.env.NODE_ENV = 'development';
-      new Hydreigon(
-        'event',
-        'listener',
-        {
-          index: 'group',
-        },
-        'group',
-        {
-          index: 'event',
-        }
-      );
-      expect(warn).nthCalledWith(
-        1,
-        '[Hydreigon] Duplicate index of head. The previous one will be overwritten.'
-      );
-      expect(warn).nthCalledWith(
-        2,
-        '[Hydreigon] Duplicate index of head. The previous one will be overwritten.'
-      );
-      expect(warn).toBeCalledTimes(2);
-      process.env = env;
-    }
+    warn.mockClear();
+    process.env.NODE_ENV = 'development';
+    new Hydreigon(
+      'event',
+      'listener',
+      {
+        index: 'group',
+      },
+      'group',
+      {
+        index: 'event',
+      },
+    );
+    expect(warn).nthCalledWith(
+      1,
+      '[Hydreigon] Duplicate index of head. The previous one will be overwritten.',
+    );
+    expect(warn).nthCalledWith(
+      2,
+      '[Hydreigon] Duplicate index of head. The previous one will be overwritten.',
+    );
+    expect(warn).toBeCalledTimes(2);
+    process.env = env;
   });
 
   it('search & searchSize & searchHas', () => {
@@ -254,19 +251,19 @@ describe('hydreigon', () => {
       {
         index: 'group',
         branch: ['event'],
-      }
+      },
     );
 
     expect(() =>
-      indexer.searchSize(['listener', 'L1'], ['event', 'E1'])
+      indexer.searchSize(['listener', 'L1'], ['event', 'E1']),
     ).toThrowError(
-      '[Hydreigon] The searched branch "event" does not exist in the branch "listener".'
+      '[Hydreigon] The searched branch "event" does not exist in the branch "listener".',
     );
     expect(() => indexer.search(false)).toThrowError(
-      '[Hydreigon] No search conditions are provided.'
+      '[Hydreigon] No search conditions are provided.',
     );
     expect(() => indexer.search(false, ['no', '1'])).toThrowError(
-      '[Hydreigon] The searched property "no" does not exist in the constructor heads parameter.'
+      '[Hydreigon] The searched property "no" does not exist in the constructor heads parameter.',
     );
     expectedSearch(indexer, [['event', 'E1']], []);
     expectedSearch(
@@ -275,14 +272,14 @@ describe('hydreigon', () => {
         ['event', 'E1'],
         ['listener', 'L1'],
       ],
-      []
+      [],
     );
 
     expect(() => indexer.searchSize()).toThrowError(
-      '[Hydreigon] No search conditions are provided.'
+      '[Hydreigon] No search conditions are provided.',
     );
     expect(() => indexer.searchSize(['no', '1'])).toThrowError(
-      '[Hydreigon] The searched property "no" does not exist in the constructor heads parameter.'
+      '[Hydreigon] The searched property "no" does not exist in the constructor heads parameter.',
     );
     expect(indexer.searchSize(['event', 'E1'])).toBe(0);
     expect(indexer.searchSize(['event', 'E1'], ['listener', 'L1'])).toBe(0);
@@ -311,7 +308,7 @@ describe('hydreigon', () => {
         ['group', 'G1'],
         ['event', 'E1'],
       ],
-      [item1]
+      [item1],
     );
     expectedSearch(
       indexer,
@@ -319,7 +316,7 @@ describe('hydreigon', () => {
         ['group', 'G1'],
         ['event', 'E2'],
       ],
-      []
+      [],
     );
     expectedSearch(
       indexer,
@@ -327,7 +324,7 @@ describe('hydreigon', () => {
         ['group', 'G3'],
         ['event', 'E3'],
       ],
-      [item3]
+      [item3],
     );
     expectedSearch(
       indexer,
@@ -335,7 +332,7 @@ describe('hydreigon', () => {
         ['group', 'G3'],
         ['event', 'E4'],
       ],
-      [item4]
+      [item4],
     );
     expectedSearch(
       indexer,
@@ -343,12 +340,12 @@ describe('hydreigon', () => {
         ['event', 'E1'],
         ['listener', 'L1'],
       ],
-      [item1]
+      [item1],
     );
     expect(() =>
-      indexer.search(false, ['group', 'G1'], ['listener', 'L1'])
+      indexer.search(false, ['group', 'G1'], ['listener', 'L1']),
     ).toThrowError(
-      '[Hydreigon] The searched branch "listener" does not exist in the branch "group".'
+      '[Hydreigon] The searched branch "listener" does not exist in the branch "group".',
     );
 
     expect(indexer.searchSize(['group', 'G1'], ['event', 'E1'])).toBe(1);
@@ -359,13 +356,13 @@ describe('hydreigon', () => {
     expect(indexer.searchHas(item1, ['group', 'G3'])).toBe(false);
     expect(indexer.searchHas(item4, ['listener', 'L4'])).toBe(false);
     expect(indexer.searchHas(item3, ['group', 'G3'], ['event', 'E3'])).toBe(
-      true
+      true,
     );
     expect(indexer.searchHas(item1, ['group', 'G3'], ['event', 'E3'])).toBe(
-      false
+      false,
     );
     expect(() => indexer.searchHas(item1)).toThrowError(
-      '[Hydreigon] No search conditions are provided.'
+      '[Hydreigon] No search conditions are provided.',
     );
   });
 
@@ -406,10 +403,10 @@ describe('hydreigon', () => {
           ['event', new Map()],
           ['listener', new Map()],
           ['group', new Map()],
-        ])
+        ]),
       );
       expect(unprotect(indexer)._branchMap).toEqual(
-        new Map([['group', ['event']]])
+        new Map([['group', ['event']]]),
       );
       expectedItems(indexer, []);
       expect(unprotect(indexer)._items).toEqual(new Set());
@@ -422,10 +419,10 @@ describe('hydreigon', () => {
       expectedItems(indexer, [item1]);
       expect(unprotect(indexer)._items).toEqual(new Set([item1]));
       expect(unprotect(indexer)._branch.get('event')).toEqual(
-        new Map([['E1', new Set([item1])]])
+        new Map([['E1', new Set([item1])]]),
       );
       expect(unprotect(indexer)._branch.get('listener')).toEqual(
-        new Map([['L1', new Set([item1])]])
+        new Map([['L1', new Set([item1])]]),
       );
       const map = unprotect(indexer)._branch.get('group');
       expect(map instanceof Map).toBeTruthy();
@@ -438,7 +435,7 @@ describe('hydreigon', () => {
           expect(unprotect(indexer)._items).toEqual(new Set([item1]));
           expect(unprotect(indexer)._branchMap).toBeUndefined();
           expect(unprotect(indexer)._branch).toEqual(
-            new Map([['event', new Map([['E1', new Set([item1])]])]])
+            new Map([['event', new Map([['E1', new Set([item1])]])]]),
           );
         }
       }
@@ -451,13 +448,13 @@ describe('hydreigon', () => {
       expectedItems(indexer, [item1, item2]);
       expect(unprotect(indexer)._items).toEqual(new Set([item1, item2]));
       expect(unprotect(indexer)._branch.get('event')).toEqual(
-        new Map([['E1', new Set([item1, item2])]])
+        new Map([['E1', new Set([item1, item2])]]),
       );
       expect(unprotect(indexer)._branch.get('listener')).toEqual(
         new Map([
           ['L1', new Set([item1])],
           ['L2', new Set([item2])],
-        ])
+        ]),
       );
       const map = unprotect(indexer)._branch.get('group');
       expect(map instanceof Map).toBeTruthy();
@@ -471,7 +468,7 @@ describe('hydreigon', () => {
             expect(unprotect(indexer)._items).toEqual(new Set([item1]));
             expect(unprotect(indexer)._branchMap).toBeUndefined();
             expect(unprotect(indexer)._branch).toEqual(
-              new Map([['event', new Map([['E1', new Set([item1])]])]])
+              new Map([['event', new Map([['E1', new Set([item1])]])]]),
             );
           }
         }
@@ -483,7 +480,7 @@ describe('hydreigon', () => {
             expect(unprotect(indexer)._items).toEqual(new Set([item2]));
             expect(unprotect(indexer)._branchMap).toBeUndefined();
             expect(unprotect(indexer)._branch).toEqual(
-              new Map([['event', new Map([['E1', new Set([item2])]])]])
+              new Map([['event', new Map([['E1', new Set([item2])]])]]),
             );
           }
         }
@@ -500,14 +497,14 @@ describe('hydreigon', () => {
         new Map([
           ['E1', new Set([item1, item2])],
           ['E3', new Set([item3])],
-        ])
+        ]),
       );
       expect(unprotect(indexer)._branch.get('listener')).toEqual(
         new Map([
           ['L1', new Set([item1])],
           ['L2', new Set([item2])],
           ['L3', new Set([item3])],
-        ])
+        ]),
       );
       const map = unprotect(indexer)._branch.get('group');
       expect(map instanceof Map).toBeTruthy();
@@ -521,7 +518,7 @@ describe('hydreigon', () => {
             expect(unprotect(indexer)._items).toEqual(new Set([item1]));
             expect(unprotect(indexer)._branchMap).toBeUndefined();
             expect(unprotect(indexer)._branch).toEqual(
-              new Map([['event', new Map([['E1', new Set([item1])]])]])
+              new Map([['event', new Map([['E1', new Set([item1])]])]]),
             );
           }
         }
@@ -533,7 +530,7 @@ describe('hydreigon', () => {
             expect(unprotect(indexer)._items).toEqual(new Set([item2]));
             expect(unprotect(indexer)._branchMap).toBeUndefined();
             expect(unprotect(indexer)._branch).toEqual(
-              new Map([['event', new Map([['E1', new Set([item2])]])]])
+              new Map([['event', new Map([['E1', new Set([item2])]])]]),
             );
           }
         }
@@ -545,7 +542,7 @@ describe('hydreigon', () => {
             expect(unprotect(indexer)._items).toEqual(new Set([item3]));
             expect(unprotect(indexer)._branchMap).toBeUndefined();
             expect(unprotect(indexer)._branch).toEqual(
-              new Map([['event', new Map([['E3', new Set([item3])]])]])
+              new Map([['event', new Map([['E3', new Set([item3])]])]]),
             );
           }
         }
@@ -558,21 +555,21 @@ describe('hydreigon', () => {
       expect(indexer.size).toBe(4);
       expectedItems(indexer, [item1, item2, item3, item4]);
       expect(unprotect(indexer)._items).toEqual(
-        new Set([item1, item2, item3, item4])
+        new Set([item1, item2, item3, item4]),
       );
       expect(unprotect(indexer)._branch.get('event')).toEqual(
         new Map([
           ['E1', new Set([item1, item2])],
           ['E3', new Set([item3])],
           ['E4', new Set([item4])],
-        ])
+        ]),
       );
       expect(unprotect(indexer)._branch.get('listener')).toEqual(
         new Map([
           ['L1', new Set([item1])],
           ['L2', new Set([item2, item4])],
           ['L3', new Set([item3])],
-        ])
+        ]),
       );
       const map = unprotect(indexer)._branch.get('group');
       expect(map instanceof Map).toBeTruthy();
@@ -586,7 +583,7 @@ describe('hydreigon', () => {
             expect(unprotect(indexer)._items).toEqual(new Set([item1]));
             expect(unprotect(indexer)._branchMap).toBeUndefined();
             expect(unprotect(indexer)._branch).toEqual(
-              new Map([['event', new Map([['E1', new Set([item1])]])]])
+              new Map([['event', new Map([['E1', new Set([item1])]])]]),
             );
           }
         }
@@ -598,7 +595,7 @@ describe('hydreigon', () => {
             expect(unprotect(region)._items).toEqual(new Set([item2]));
             expect(unprotect(region)._branchMap).toBeUndefined();
             expect(unprotect(region)._branch).toEqual(
-              new Map([['event', new Map([['E1', new Set([item2])]])]])
+              new Map([['event', new Map([['E1', new Set([item2])]])]]),
             );
           }
         }
@@ -618,7 +615,7 @@ describe('hydreigon', () => {
                     ['E4', new Set([item4])],
                   ]),
                 ],
-              ])
+              ]),
             );
           }
         }

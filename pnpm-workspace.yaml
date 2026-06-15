@@ -1,0 +1,7 @@
+# Auto-download & use the latest Node.js LTS for all pnpm-run scripts
+useNodeVersion: 24.16.0
+managePackageManagerVersions: true
+
+allowBuilds:
+  esbuild: true
+  lefthook: true
