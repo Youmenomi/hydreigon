@@ -1,27 +1,27 @@
-import { type IndexType, report } from './helper';
+import { report } from './helper';
 
 const pkgName = 'hydreigon';
 
 export type Node = {
-  index: IndexType;
-  branch?: (IndexType | Node)[];
+  index: PropertyKey;
+  branch?: (PropertyKey | Node)[];
 };
 
-export type Branch<TItem extends { [key in IndexType]: any } = any> = Map<
-  IndexType,
-  Map<IndexType, Set<TItem> | Hydreigon<TItem>>
+export type Branch<TItem extends { [key in PropertyKey]: any } = any> = Map<
+  PropertyKey,
+  Map<PropertyKey, Set<TItem> | Hydreigon<TItem>>
 >;
 
 export class Hydreigon<
-  TItem extends { [key in IndexType]: any } = any,
-  TCondition extends [IndexType, any] = [IndexType, any],
+  TItem extends { [key in PropertyKey]: any } = any,
+  TCondition extends [PropertyKey, any] = [PropertyKey, any],
 > {
   protected _items = new Set<TItem>();
   protected _branch: Branch<TItem> = new Map();
-  protected _branchMap?: Map<IndexType, (IndexType | Node)[]>;
+  protected _branchMap?: Map<PropertyKey, (PropertyKey | Node)[]>;
   protected _compareFn?: (a: TItem, b: TItem) => number;
 
-  constructor(...heads: (IndexType | Node)[]) {
+  constructor(...heads: (PropertyKey | Node)[]) {
     heads.forEach((head) => {
       if (typeof head === 'object') {
         if (

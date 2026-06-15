@@ -19,14 +19,16 @@ export default defineConfig({
       bundleTypes: true,
       entryRoot: 'src',
       tsconfigPath: './tsconfig.build.json',
+      exclude: ['**/*.test.ts'],
     }),
   ],
   test: {
     globals: true,
-    include: ['__test__/**/*.spec.ts'],
+    include: ['src/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
+      exclude: ['**/*.test.ts'],
       thresholds: {
         branches: 100,
         functions: 100,

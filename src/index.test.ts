@@ -1,5 +1,32 @@
-import { Hydreigon } from '../src';
-import { expectedItems, expectedSearch, unprotect } from './helper';
+import { type Branch, Hydreigon, type Node } from './index';
+
+// ── test helpers（原 __test__/helper.ts，僅此測試使用，故 inline 於此）──
+function unprotect<IItem extends { [key in PropertyKey]: any } = any>(
+  hydreigon: Hydreigon<IItem>,
+) {
+  return hydreigon as Hydreigon & {
+    _items: Set<IItem>;
+    _branch: Branch<IItem>;
+    _branchMap?: Map<PropertyKey, (PropertyKey | Node)[]>;
+  };
+}
+
+function expectedSearch<IItem extends { [key in PropertyKey]: any } = any>(
+  hydreigon: Hydreigon<IItem>,
+  conditions: [PropertyKey, any][],
+  match: IItem[],
+) {
+  expect(hydreigon.search(false, ...conditions)).toEqual(new Set(match));
+  expect(hydreigon.search(true, ...conditions)).toEqual(match);
+}
+
+function expectedItems<IItem extends { [key in PropertyKey]: any } = any>(
+  hydreigon: Hydreigon<IItem>,
+  match: IItem[],
+) {
+  expect(hydreigon.items()).toEqual(new Set(match));
+  expect(hydreigon.items(true)).toEqual(match);
+}
 
 const env = process.env;
 
