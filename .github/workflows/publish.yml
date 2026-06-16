@@ -26,11 +26,16 @@ jobs:
           cache: "pnpm"
           registry-url: "https://registry.npmjs.org"
 
+      - name: Verify the tag matches the package.json version
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          test "${GITHUB_REF_NAME#v}" = "$PKG" || {
+            echo "::error::tag ${GITHUB_REF_NAME#v} does not match package.json version $PKG"
+            exit 1
+          }
+
       - name: Install dependencies
         run: pnpm install
-
-      - name: Update version
-        run: pnpm version ${GITHUB_REF_NAME#v} --no-git-tag-version
 
       - name: Build
         run: pnpm run build
