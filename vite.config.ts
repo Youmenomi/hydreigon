@@ -9,8 +9,12 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'hydreigon',
       fileName: (format) =>
-        format === 'es' ? 'hydreigon.js' : 'hydreigon.cjs',
-      formats: ['es', 'cjs'],
+        format === 'es'
+          ? 'hydreigon.js'
+          : format === 'cjs'
+            ? 'hydreigon.cjs'
+            : 'hydreigon.global.js',
+      formats: ['es', 'cjs', 'iife'],
     },
     sourcemap: true,
   },
